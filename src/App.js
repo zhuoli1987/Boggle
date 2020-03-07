@@ -1,26 +1,23 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {Component} from 'react';
+import {BrowserRouter, Switch, Redirect, Route } from 'react-router-dom';
+
+import GamePage from './components/gamepage/GamePage';
+import LoginPage from './components/loginpage/LoginPage';
+import ErrorPage from './components/errorpage/ErrorPage';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+    render() {
+      return(
+        <BrowserRouter>
+          <Switch>
+            <Route exact path='/' component={LoginPage} />
+            <Route exact path='/game/:slug'  component={GamePage} />
+            <Route exact path="*" component={ErrorPage} />
+          </Switch>
+        </BrowserRouter>
+      );
+    }
 }
 
 export default App;
