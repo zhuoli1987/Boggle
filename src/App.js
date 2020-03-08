@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {BrowserRouter, Switch, Redirect, Route } from 'react-router-dom';
+import {BrowserRouter, Switch, Route } from 'react-router-dom';
 
 import GamePage from './components/gamepage/GamePage';
 import LoginPage from './components/loginpage/LoginPage';

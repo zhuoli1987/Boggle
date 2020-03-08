@@ -10,9 +10,11 @@ class GamePage extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            boardChars: [["t", "a","b","c"],["d","t","e","f"],["g","f","h","i"],["j","k","m","n","o"]],
+            board: [],
             correctWords: [],
             users: [],
+            user_name: "",
+            gameId: "",
             dialogOpen: false,
             complete: false,
             timeInSec: 180,
@@ -27,10 +29,20 @@ class GamePage extends Component {
 
     //Initial the board from backend for the first time
     initBoard = () => {
-        axios.get('http://localhost:8000/api/v1/boggle/board').then(
-            (response) => {
-                const boardChars = response.data.data;
-                this.setState({ boardChars: boardChars })
+        let url_split = window.location.href.toString().split("/"); 
+        let user_name = url_split[url_split.length - 1];
+
+        axios.get('http://localhost:8000/api/v1/boggle/board/' + user_name).then(
+            response => {
+                const chars = response.data.data;;
+                const gameId = response.data.id;
+                this.setState(
+                    { 
+                        board: chars,
+                        gameId: gameId
+                    }
+                );
+                
             }
         );
     }
@@ -47,15 +59,16 @@ class GamePage extends Component {
         );
         
         if (found !== wordToBeSubmitted) {
+            console.log('IIIII');
             if (this.validateWord(wordToBeSubmitted)){
+                console.log('HERERE');
                 axios.post(
-                    'http://localhost:8080/api/v1/boggle/word', 
+                    'http://localhost:8000/api/v1/boggle/word/' + this.state.gameId, 
                     {
                         word: this.state.finalWord
                     }
                 ).then(
                     (response) => {
-                        console.log(response);
                         if (response.data.check === true) {
                             this.setState(
                                 { 
@@ -87,14 +100,14 @@ class GamePage extends Component {
         );
 
         if (this.state.timeInSec === 0) {
-            clearInterval(this.state.intervalId)
-            this.onTimesUp()
+            clearInterval(this.state.intervalId);
+            this.onTimesUp();
         }
     }
 
     validateWord = (word) => {
         let startPoints = this.findStartPoint(word.charAt(0));
-        let board = this.state.boardChars;
+        let board = this.state.board;
         let is_valid = false;
         let m = board.length;
         let n = board[0].length;
@@ -176,12 +189,12 @@ class GamePage extends Component {
 
     findStartPoint = (firstChar) => {
         let startPoints = [];
-        let m = this.state.boardChars.length;
-        let n = this.state.boardChars[0].length;
+        let m = this.state.board.length;
+        let n = this.state.board[0].length;
 
         for(var i = 0; i < m; i++) {
             for(var j = 0; j < n; j++)
-                if (this.state.boardChars[i][j] === firstChar) {
+                if (this.state.board[i][j] === firstChar) {
                     startPoints.push([i, j]);
                 }
         }
@@ -208,17 +221,16 @@ class GamePage extends Component {
     handleTextChange(e) {
         this.setState(
             { 
-                finalWord: e.target.value 
+                finalWord: e.target.value.toUpperCase() 
             }
         )
         
     }
 
     // ********* React life cycle methods below **************
-    componentWillMount() {
+    componentDidMount() {
         // Initialize the board
-        //this.initBoard();
-        
+        this.initBoard();
         var intervalId = setInterval(this.timer, 1000);
         this.setState(
             { 
@@ -228,6 +240,16 @@ class GamePage extends Component {
     }
 
     render() {
+        if (this.state.board.length === 0) {
+            return (
+                <div className="Page">
+                    <div className="Game-container">
+                        Loading...
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="Page">
                 <ResultsDialog
@@ -248,28 +270,28 @@ class GamePage extends Component {
                         </h3>
                     </div>
                     <div id="row01" className="rowstyle">
-                        <div id="00" className="colstyle">{this.state.boardChars[0][0]}</div>
-                        <div id="01" className="colstyle">{this.state.boardChars[0][1]}</div>
-                        <div id="02" className="colstyle">{this.state.boardChars[0][2]}</div>
-                        <div id="03" className="colstyle">{this.state.boardChars[0][3]}</div>
+                        <div id="00" className="colstyle">{this.state.board[0][0]}</div>
+                        <div id="01" className="colstyle">{this.state.board[0][1]}</div>
+                        <div id="02" className="colstyle">{this.state.board[0][2]}</div>
+                        <div id="03" className="colstyle">{this.state.board[0][3]}</div>
                     </div>
                     <div id="row02" className="rowstyle">
-                        <div id="10" className="colstyle">{this.state.boardChars[1][0]}</div>
-                        <div id="11" className="colstyle">{this.state.boardChars[1][1]}</div>
-                        <div id="12" className="colstyle">{this.state.boardChars[1][2]}</div>
-                        <div id="13" className="colstyle">{this.state.boardChars[1][3]}</div>
+                        <div id="10" className="colstyle">{this.state.board[1][0]}</div>
+                        <div id="11" className="colstyle">{this.state.board[1][1]}</div>
+                        <div id="12" className="colstyle">{this.state.board[1][2]}</div>
+                        <div id="13" className="colstyle">{this.state.board[1][3]}</div>
                     </div>
                     <div id="row03" className="rowstyle">
-                        <div id="20" className="colstyle">{this.state.boardChars[2][0]}</div>
-                        <div id="21" className="colstyle">{this.state.boardChars[2][1]}</div>
-                        <div id="22" className="colstyle">{this.state.boardChars[2][2]}</div>
-                        <div id="23" className="colstyle">{this.state.boardChars[2][3]}</div>
+                        <div id="20" className="colstyle">{this.state.board[2][0]}</div>
+                        <div id="21" className="colstyle">{this.state.board[2][1]}</div>
+                        <div id="22" className="colstyle">{this.state.board[2][2]}</div>
+                        <div id="23" className="colstyle">{this.state.board[2][3]}</div>
                     </div>
                     <div id="row04" className="rowstyle">
-                        <div id="30" className="colstyle">{this.state.boardChars[3][0]}</div>
-                        <div id="31" className="colstyle">{this.state.boardChars[3][1]}</div>
-                        <div id="32" className="colstyle">{this.state.boardChars[3][2]}</div>
-                        <div id="33" className="colstyle">{this.state.boardChars[3][3]}</div>
+                        <div id="30" className="colstyle">{this.state.board[3][0]}</div>
+                        <div id="31" className="colstyle">{this.state.board[3][1]}</div>
+                        <div id="32" className="colstyle">{this.state.board[3][2]}</div>
+                        <div id="33" className="colstyle">{this.state.board[3][3]}</div>
                     </div>
                     <div className="submit-field">
                         <TextField
