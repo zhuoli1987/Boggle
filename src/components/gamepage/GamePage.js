@@ -3,6 +3,7 @@ import axios from 'axios';
 import TextField from '@material-ui/core/TextField';
 
 import './gamepage.css';
+import ResultsDialog from '../popup/ResultsDialog';
 
 
 class GamePage extends Component {
@@ -26,7 +27,7 @@ class GamePage extends Component {
 
     //Initial the board from backend for the first time
     initBoard = () => {
-        axios.get('/api/v1/boggle/board').then(
+        axios.get('http://localhost:8000/api/v1/boggle/board').then(
             (response) => {
                 const boardChars = response.data.data;
                 this.setState({ boardChars: boardChars })
@@ -47,14 +48,14 @@ class GamePage extends Component {
         
         if (found !== wordToBeSubmitted) {
             if (this.validateWord(wordToBeSubmitted)){
-                console.log('HERERR');
                 axios.post(
-                    '/api/v1/boggle/word', 
+                    'http://localhost:8080/api/v1/boggle/word', 
                     {
                         word: this.state.finalWord
                     }
                 ).then(
                     (response) => {
+                        console.log(response);
                         if (response.data.check === true) {
                             this.setState(
                                 { 
@@ -229,13 +230,21 @@ class GamePage extends Component {
     render() {
         return (
             <div className="Page">
+                <ResultsDialog
+                    open={this.state.dialogOpen}
+                    onClose={this.handleClose}
+                    submittedwords={this.submittedwords}
+                    finalresult={this.state.points}
+                    result={this.state.correctWords}
+                    users={this.state.users}
+                />
                 <div className="Game-container">
                     <div>
-                        <h1>Points: {this.state.points}</h1>
+                        <h1>POINTS: {this.state.points}</h1>
                     </div>
                     <div>
                         <h3>
-                            <span>Countdown: {this.state.timeInSec} s</span>
+                            <span>COUNTDOWN: {this.state.timeInSec} S</span>
                         </h3>
                     </div>
                     <div id="row01" className="rowstyle">
@@ -269,7 +278,7 @@ class GamePage extends Component {
                             value={this.state.finalWord}
                             style={{
                                 display: 'flex',
-                                margin: '0px 20px 20px 20px'
+                                width: '100%',
                             }}
                             onChange={(e) => this.handleTextChange(e)}
                             margin="normal"

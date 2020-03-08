@@ -10,18 +10,25 @@
     align-items: center;
     justify-content: center;
     font-size: calc(10px + 2vmin);
-    color: black !important;
+    color: gray !important;
 }
 
 .submitbtn{
-    background: #b43232;
+    background: #d85555;
     border-radius: 5px;
     margin: 5px;
     cursor: pointer;
+    min-width: 300px;
+}
+
+.submit-field {
+    margin: 10px;
+    min-width: 484px;
 }
 
 .submitbtn p{
     padding:0 10px;
+    color: #ffffff;
 }
 
 .colstyle{
@@ -30,7 +37,8 @@
     width: 60px;
     height: 35px;
     border: 0.5px solid #fff;
-    background: #6a6cdb;
+    background: #464797;
+    color: #ffffff;
 }
 
 .rowstyle{
