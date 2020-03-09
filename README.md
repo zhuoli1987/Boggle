@@ -6,7 +6,7 @@ The goal is to find as many words as possible given a time constraint.
 ## Deployment
 
 - Clone the project `git clone https://github.com/zhuoli1987/Boggle.git`
-- CD to the Project Directory `cd boggle-front`
+- CD to the Project Directory `cd Boggle`
 - Run `npm install`
 - Run Application `npm start` this will run the application on port 3000 (Make sure the backend application is up and running)
 - Setup Backend application [https://github.com/zhuoli1987/Boggle-django.git](https://github.com/zhuoli1987/Boggle-django.git)
