@@ -17,13 +17,15 @@ class GamePage extends Component {
             gameId: "",
             dialogOpen: false,
             complete: false,
-            timeInSec: 180,
+            timeInSec: 100,
             points: 0,
             finalWord: "",
         };
     }
 
     submittedwords = [];
+    wordIndexs = [];
+    GAME_BOARD_SIZE = 4;
 
     // ********* Helper methods below **************
 
@@ -59,21 +61,24 @@ class GamePage extends Component {
         );
         
         if (found !== wordToBeSubmitted) {
-            console.log('IIIII');
             if (this.validateWord(wordToBeSubmitted)){
-                console.log('HERERE');
+                this.submittedwords.push(wordToBeSubmitted);
+                
+                // Change back ground
+                this.changeBackground(this.wordIndexs, "#345678");
+                
                 axios.post(
                     'http://localhost:8000/api/v1/boggle/word/' + this.state.gameId, 
                     {
                         word: this.state.finalWord
                     }
                 ).then(
-                    (response) => {
+                    response => {
                         if (response.data.check === true) {
                             this.setState(
                                 { 
-                                    points: this.state.points + response.data.points, 
-                                    correctWords: response.data.results 
+                                    points: response.data.points, 
+                                    correctWords: response.data.correct_words 
                                 }
                             );
                         }
@@ -84,11 +89,22 @@ class GamePage extends Component {
                     }
                 )
             }else {
-                // Error Pop up
+                alert('Wrong word entered!');
             }
         } else {
             // display error message
         }
+
+    }
+
+    reset = () => {
+        // Change back ground
+        this.changeBackground(this.wordIndexs, '#3f51b5');
+        this.setState(
+            {
+                finalWord: ''
+            }
+        )
     }
 
     // time out when timeInSec value exceeds
@@ -111,13 +127,17 @@ class GamePage extends Component {
         let is_valid = false;
         let m = board.length;
         let n = board[0].length;
-
+        this.wordIndexs = [];
+        
         while (!is_valid && startPoints.length > 0) {
             let index = startPoints.pop();
-
             let rowIndex = index[0];
             let colIndex = index[1];
             let wordArr = [...word];
+            let wordRecords = Array(this.GAME_BOARD_SIZE).fill().map(() => Array(this.GAME_BOARD_SIZE).fill(0));
+
+            this.wordIndexs.push([rowIndex, colIndex]);
+            wordRecords[rowIndex][colIndex] = 1
             /**
              *  We want to check all positions 
              *  acount C
@@ -127,64 +147,114 @@ class GamePage extends Component {
              *  6   7   8
              */
             for (var i = 1; i < wordArr.length; i++) {
-                let curChar = wordArr[i];
+                is_valid = true;
 
+                let curChar = wordArr[i];
+                
                 if (
-                    (
-                        colIndex - 1 >= 0 
-                        && board[rowIndex][colIndex - 1] === curChar // position 4
-                    )
-                    ||
-                    (
-                        colIndex + 1 < n 
-                        && board[rowIndex][colIndex + 1] === curChar // position 5
-                    )
-                    ||
-                    (
-                        rowIndex - 1 >= 0 
-                        && board[rowIndex - 1][colIndex] === curChar // position 2
-                    )
-                    ||
-                    (
-                        rowIndex + 1 < m 
-                        && board[rowIndex + 1][colIndex] === curChar // position 7
-                    )
-                    ||
-                    (
-                        rowIndex - 1 >= 0 
-                        && colIndex - 1 >= 0
-                        && board[rowIndex - 1][colIndex - 1] === curChar // position 1
-                    )
-                    ||
-                    (
-                        rowIndex - 1 >= 0 
-                        && colIndex + 1 < n
-                        && board[rowIndex - 1][colIndex + 1] === curChar // position 3
-                    )
-                    ||
-                    (
-                        rowIndex + 1 < m 
-                        && colIndex - 1 >= 0 
-                        && board[rowIndex + 1][colIndex - 1] === curChar // position 6
-                    )
-                    ||
-                    (
-                        rowIndex + 1 < m 
-                        && colIndex + 1 < n 
-                        && board[rowIndex + 1][colIndex + 1] === curChar // position 8
-                    )
+                    colIndex - 1 >= 0 
+                    && board[rowIndex][colIndex - 1] === curChar // position 4
+                    && wordRecords[rowIndex][colIndex - 1] === 0
                 ) {
+                    wordRecords[rowIndex][colIndex - 1] = 1;
+                    this.wordIndexs.push([rowIndex, colIndex]);
+                    colIndex -= 1;
+                    continue;
+                } else if (
+                    colIndex + 1 < n 
+                    && board[rowIndex][colIndex + 1] === curChar // position 5
+                    && wordRecords[rowIndex][colIndex + 1] === 0
+                ) {
+                    wordRecords[rowIndex][colIndex + 1] = 1;
+                    this.wordIndexs.push([rowIndex, colIndex + 1]);
+                    colIndex += 1;
+                    continue;
+                } else if (
+                    rowIndex - 1 >= 0 
+                    && board[rowIndex - 1][colIndex] === curChar // position 2
+                    && wordRecords[rowIndex - 1][colIndex] === 0
+                ) {
+                    wordRecords[rowIndex - 1][colIndex] = 1;
+                    this.wordIndexs.push([rowIndex - 1, colIndex]);
+                    rowIndex -= 1;
+                    continue;
+                } else if (
+                    rowIndex + 1 < m 
+                    && board[rowIndex + 1][colIndex] === curChar // position 7
+                    && wordRecords[rowIndex + 1][colIndex] === 0
+                ) {
+                    wordRecords[rowIndex + 1][colIndex] = 1;
+                    this.wordIndexs.push([rowIndex + 1, colIndex]);
+                    rowIndex += 1;
+                    continue;
+                } else if (
+                    rowIndex - 1 >= 0 
+                    && colIndex - 1 >= 0
+                    && board[rowIndex - 1][colIndex - 1] === curChar // position 1
+                    && wordRecords[rowIndex - 1][colIndex - 1] === 0
+                ) {
+                    wordRecords[rowIndex - 1][colIndex - 1] = 1;
+                    this.wordIndexs.push([rowIndex - 1, colIndex - 1])
+                    rowIndex -= 1;
+                    colIndex -= 1;
+                    continue;
+                } else if (
+                    rowIndex - 1 >= 0 
+                    && colIndex + 1 < n
+                    && board[rowIndex - 1][colIndex + 1] === curChar // position 3
+                    && wordRecords[rowIndex - 1][colIndex + 1] === 0
+                ) {
+                    wordRecords[rowIndex - 1][colIndex + 1] = 1;
+                    this.wordIndexs.push([rowIndex - 1, colIndex + 1]);
+                    rowIndex -= 1;
+                    colIndex += 1;
+                    continue;
+                } else if (
+                    rowIndex + 1 < m 
+                    && colIndex - 1 >= 0 
+                    && board[rowIndex + 1][colIndex - 1] === curChar // position 6
+                    && wordRecords[rowIndex + 1][colIndex - 1] === 0
+                ) {
+                    wordRecords[rowIndex + 1][colIndex - 1] = 1;
+                    this.wordIndexs.push([rowIndex + 1, colIndex - 1]);
+                    rowIndex += 1;
+                    colIndex -= 1; 
+                    continue;
+                } else if (
+                    rowIndex + 1 < m 
+                    && colIndex + 1 < n 
+                    && board[rowIndex + 1][colIndex + 1] === curChar // position 8
+                    && wordRecords[rowIndex + 1][colIndex + 1] === 0
+                ) {
+                    wordRecords[rowIndex + 1][colIndex + 1] = 1;
+                    this.wordIndexs.push([rowIndex + 1, colIndex + 1]);
+                    rowIndex += 1;
+                    colIndex += 1;
+                    continue;
+                } else if (
+                    i === wordArr.length -1 
+                ) {
+                    this.wordIndexs.push([rowIndex, colIndex]);
                     continue;
                 } else {
-                    return false; // the sequence has stopped
+                    is_valid = false; // the sequence has stopped
+                    break;
                 }
-                
             }
-
-            is_valid = true;
+            
         }
-        
+
         return is_valid;
+    }
+
+    changeBackground = (wordArr, color) => {
+        while (wordArr.length > 0) {
+            let index = wordArr.pop();
+            let indexStrs = index.map(String);
+            let idStr = indexStrs.join('');
+            document.getElementById(idStr).style.background = color;
+        }
+
     }
 
     findStartPoint = (firstChar) => {
@@ -209,7 +279,6 @@ class GamePage extends Component {
     }
 
     onTimesUp = () => {
-        // this.getLeaderboard();
         this.setState(
             {
                 dialogOpen: true, 
@@ -258,11 +327,10 @@ class GamePage extends Component {
                     submittedwords={this.submittedwords}
                     finalresult={this.state.points}
                     result={this.state.correctWords}
-                    users={this.state.users}
                 />
                 <div className="Game-container">
                     <div>
-                        <h1>POINTS: {this.state.points}</h1>
+                        <h3>POINTS: {this.state.points}</h3>
                     </div>
                     <div>
                         <h3>
