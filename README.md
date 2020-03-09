@@ -1,3 +1,16 @@
+
+# Boggle Game Frontend
+Boggle is a word game that is played on a 4x4 board with 16 letter tiles. 
+The goal is to find as many words as possible given a time constraint.  
+
+## Deployment
+
+- Clone the project `git clone https://github.com/zhuoli1987/Boggle.git`
+- CD to the Project Directory `cd boggle-front`
+- Run `npm install`
+- Run Application `npm start` this will run the application on port 3000 (Make sure the backend application is up and running)
+- Setup Backend application [https://github.com/zhuoli1987/Boggle-django.git](https://github.com/zhuoli1987/Boggle-django.git)
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
