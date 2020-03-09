@@ -4,6 +4,7 @@ import TextField from '@material-ui/core/TextField';
 
 import './gamepage.css';
 import ResultsDialog from '../popup/ResultsDialog';
+import AlertDialog from '../popup/AlertDialog';
 
 
 class GamePage extends Component {
@@ -16,10 +17,13 @@ class GamePage extends Component {
             user_name: "",
             gameId: "",
             dialogOpen: false,
+            popupOpen: false,
             complete: false,
-            timeInSec: 100,
+            timeInSec: 180,
             points: 0,
             finalWord: "",
+            popTitle: "",
+            popMessage: ""
         };
     }
 
@@ -78,7 +82,18 @@ class GamePage extends Component {
                             this.setState(
                                 { 
                                     points: response.data.points, 
-                                    correctWords: response.data.correct_words 
+                                    correctWords: response.data.correct_words,
+                                    popupOpen: true,
+                                    popTitle: "Congrats",
+                                    popMessage: "Correct Word" 
+                                }
+                            );
+                        } else {
+                            this.setState(
+                                { 
+                                    popupOpen: true,
+                                    popTitle: "Oops",
+                                    popMessage: "Wrong Word" 
                                 }
                             );
                         }
@@ -89,10 +104,22 @@ class GamePage extends Component {
                     }
                 )
             }else {
-                alert('Wrong word entered!');
+                this.setState(
+                    { 
+                        popupOpen: true,
+                        popTitle: "Oops",
+                        popMessage: "Wrong Word" 
+                    }
+                );
             }
         } else {
-            // display error message
+            this.setState(
+                { 
+                    popupOpen: true,
+                    popTitle: "Oops",
+                    popMessage: "You've submitted this word already" 
+                }
+            );
         }
 
     }
@@ -127,7 +154,7 @@ class GamePage extends Component {
         let is_valid = false;
         let m = board.length;
         let n = board[0].length;
-        this.wordIndexs = [];
+        
         
         while (!is_valid && startPoints.length > 0) {
             let index = startPoints.pop();
@@ -135,8 +162,9 @@ class GamePage extends Component {
             let colIndex = index[1];
             let wordArr = [...word];
             let wordRecords = Array(this.GAME_BOARD_SIZE).fill().map(() => Array(this.GAME_BOARD_SIZE).fill(0));
-
-            this.wordIndexs.push([rowIndex, colIndex]);
+            let tempList = [];
+            
+            tempList.push([rowIndex, colIndex]);
             wordRecords[rowIndex][colIndex] = 1
             /**
              *  We want to check all positions 
@@ -157,7 +185,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex][colIndex - 1] === 0
                 ) {
                     wordRecords[rowIndex][colIndex - 1] = 1;
-                    this.wordIndexs.push([rowIndex, colIndex]);
+                    tempList.push([rowIndex, colIndex- 1]);
                     colIndex -= 1;
                     continue;
                 } else if (
@@ -166,7 +194,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex][colIndex + 1] === 0
                 ) {
                     wordRecords[rowIndex][colIndex + 1] = 1;
-                    this.wordIndexs.push([rowIndex, colIndex + 1]);
+                    tempList.push([rowIndex, colIndex + 1]);
                     colIndex += 1;
                     continue;
                 } else if (
@@ -175,7 +203,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex - 1][colIndex] === 0
                 ) {
                     wordRecords[rowIndex - 1][colIndex] = 1;
-                    this.wordIndexs.push([rowIndex - 1, colIndex]);
+                    tempList.push([rowIndex - 1, colIndex]);
                     rowIndex -= 1;
                     continue;
                 } else if (
@@ -184,7 +212,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex + 1][colIndex] === 0
                 ) {
                     wordRecords[rowIndex + 1][colIndex] = 1;
-                    this.wordIndexs.push([rowIndex + 1, colIndex]);
+                    tempList.push([rowIndex + 1, colIndex]);
                     rowIndex += 1;
                     continue;
                 } else if (
@@ -194,7 +222,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex - 1][colIndex - 1] === 0
                 ) {
                     wordRecords[rowIndex - 1][colIndex - 1] = 1;
-                    this.wordIndexs.push([rowIndex - 1, colIndex - 1])
+                    tempList.push([rowIndex - 1, colIndex - 1])
                     rowIndex -= 1;
                     colIndex -= 1;
                     continue;
@@ -205,7 +233,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex - 1][colIndex + 1] === 0
                 ) {
                     wordRecords[rowIndex - 1][colIndex + 1] = 1;
-                    this.wordIndexs.push([rowIndex - 1, colIndex + 1]);
+                    tempList.push([rowIndex - 1, colIndex + 1]);
                     rowIndex -= 1;
                     colIndex += 1;
                     continue;
@@ -216,7 +244,7 @@ class GamePage extends Component {
                     && wordRecords[rowIndex + 1][colIndex - 1] === 0
                 ) {
                     wordRecords[rowIndex + 1][colIndex - 1] = 1;
-                    this.wordIndexs.push([rowIndex + 1, colIndex - 1]);
+                    tempList.push([rowIndex + 1, colIndex - 1]);
                     rowIndex += 1;
                     colIndex -= 1; 
                     continue;
@@ -227,19 +255,18 @@ class GamePage extends Component {
                     && wordRecords[rowIndex + 1][colIndex + 1] === 0
                 ) {
                     wordRecords[rowIndex + 1][colIndex + 1] = 1;
-                    this.wordIndexs.push([rowIndex + 1, colIndex + 1]);
+                    tempList.push([rowIndex + 1, colIndex + 1]);
                     rowIndex += 1;
                     colIndex += 1;
-                    continue;
-                } else if (
-                    i === wordArr.length -1 
-                ) {
-                    this.wordIndexs.push([rowIndex, colIndex]);
                     continue;
                 } else {
                     is_valid = false; // the sequence has stopped
                     break;
                 }
+            }
+
+            if (is_valid) {
+                this.wordIndexs = tempList;
             }
             
         }
@@ -248,8 +275,8 @@ class GamePage extends Component {
     }
 
     changeBackground = (wordArr, color) => {
-        while (wordArr.length > 0) {
-            let index = wordArr.pop();
+        for (var i = 0; i < wordArr.length; i++) {
+            let index = wordArr[i];
             let indexStrs = index.map(String);
             let idStr = indexStrs.join('');
             document.getElementById(idStr).style.background = color;
@@ -278,6 +305,10 @@ class GamePage extends Component {
         window.location.reload();
     }
 
+    handleClosePopUp = () => {
+        this.setState({popupOpen:false});
+    }
+
     onTimesUp = () => {
         this.setState(
             {
@@ -288,6 +319,9 @@ class GamePage extends Component {
     }
 
     handleTextChange(e) {
+        if (e.target.value.length === 0) {
+            this.reset();
+        }
         this.setState(
             { 
                 finalWord: e.target.value.toUpperCase() 
@@ -327,6 +361,12 @@ class GamePage extends Component {
                     submittedwords={this.submittedwords}
                     finalresult={this.state.points}
                     result={this.state.correctWords}
+                />
+                <AlertDialog
+                    open={this.state.popupOpen}
+                    onClose={this.handleClosePopUp}
+                    title={this.state.popTitle}
+                    message={this.state.popMessage}
                 />
                 <div className="Game-container">
                     <div>

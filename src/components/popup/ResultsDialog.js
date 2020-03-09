@@ -28,7 +28,7 @@ class ResultsDialog extends Component {
                 <Table style={
                     { 
                         margin: '10px',
-                        display: 'flex'
+                        display: 'inline-block'
                     }
                 }>
                     <TableHead>
@@ -40,11 +40,11 @@ class ResultsDialog extends Component {
                     </TableHead>
                     <TableBody>
                         {this.props.result && this.props.result.map(row => (
-                            <TableRow key={row[0]}>
+                            <TableRow key={row}>
                                 <TableCell component="th" scope="row">
-                                    {row[0]}
+                                    {row}
                                 </TableCell>
-                                <TableCell align="right">{row[1]}</TableCell>
+                                <TableCell align="right">{row.length}</TableCell>
 
                             </TableRow>
                         ))}
